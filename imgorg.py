@@ -74,9 +74,8 @@ def process(src_dir, tgt_dir, raw, command):
 
         if fextension.upper() in ['.JPEG','.PNG']:
             if (fname+fextension.lower() in photos) or (fname+fextension.upper() in photos):
-                print(f)
+                # print(f)
                 returncode, stdout, stderr = execCommand(command + [src_dir+'/'+f, tgt_dir])
-
                 rawfile = Path(raw_dir + '/' + fname + ".RW2")
                 # print("RAWFILE:" + str(rawfile))
                 if (rawfile).is_file():
