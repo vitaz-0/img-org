@@ -116,11 +116,19 @@ def cmp(src_dir, tgt_dir):
 
     for f in srcFiles:
         if f in tgtFiles:
-            print("!!! File exists in both folders: " + f)
+            # print("!!! File exists in both folders: " + f)
             pass
         else:
             pass
-            # print("!!! File found only in source : " + f)
+            print("!!! File found only in source : " + f)
+
+    for f in tgtFiles:
+        if f in srcFiles:
+            # print("!!! File exists in both folders: " + f)
+            pass
+        else:
+            pass
+            print("!!! File found only in target : " + f)        
 
 @imgorg.command()
 @click.argument('src_dir', required=True)
