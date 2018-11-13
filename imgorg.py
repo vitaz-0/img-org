@@ -54,12 +54,12 @@ def execCommand(command):
 
 def getFiles(src_dir):
     files = ls(src_dir)
-    # print(files)
+    # print(files[0],files[1],files[2],files[3])
     return files
 
 def getPhotos():
     photos=listPhotos()
-    # print(photos)
+    # print(photos[0],photos[1],photos[2],photos[3])
     return photos
 
 def process(src_dir, tgt_dir, raw, command):
@@ -72,9 +72,9 @@ def process(src_dir, tgt_dir, raw, command):
         else:
             raw_dir = src_dir
 
-        if fextension.upper() in ['.JPEG','.PNG']:
+        if fextension.upper() in ['.JPEG','.JPG','.PNG']:
             if (fname+fextension.lower() in photos) or (fname+fextension.upper() in photos):
-                # print(f)
+                print(f)
                 returncode, stdout, stderr = execCommand(command + [src_dir+'/'+f, tgt_dir])
                 rawfile = Path(raw_dir + '/' + fname + ".RW2")
                 # print("RAWFILE:" + str(rawfile))
@@ -104,12 +104,34 @@ def mv(src_dir, tgt_dir, raw):
 @click.argument('src_dir', required=True)
 @click.argument('tgt_dir', required=True)
 def cmp(src_dir, tgt_dir):
-    srcFiles = getFiles(src_dir)
-    tgtFiles = getFiles(tgt_dir)
+    if src_dir == 'PHOTOS':
+        srcFiles = getPhotos()
+    else:
+        srcFiles = getFiles(src_dir)
+
+    if tgt_dir == 'PHOTOS':
+        tgtFiles = getPhotos()
+    else:
+        tgtFiles = getFiles(tgt_dir)
 
     for f in srcFiles:
         if f in tgtFiles:
             print("!!! File exists in both folders: " + f)
+            pass
+        else:
+            pass
+            # print("!!! File found only in source : " + f)
 
+@imgorg.command()
+@click.argument('src_dir', required=True)
+@click.argument('tgt_dir', required=True)
+def resize(src_dir, tgt_dir):
+    command = 'jpeg-recompress'
+    files = getFiles(src_dir)
+    for f in files:
+        fname, fextension = os.path.splitext(f)
+        if fextension.upper() in ['.JPEG','.JPG','.PNG']:
+            returncode, stdout, stderr = execCommand([command, src_dir+'/'+f, tgt_dir+'/small_'+f])
+            print(f, returncode, stdout)
 if __name__ == '__main__':
     imgorg()
