@@ -62,25 +62,45 @@ def getPhotos():
     # print(photos[0],photos[1],photos[2],photos[3])
     return photos
 
-def process(src_dir, tgt_dir, raw, command):
+def processRaw(raw_dir, tgt_dir, fname, command):
+    rawfile1 = Path(raw_dir + '/' + fname + ".RW2")
+    rawfile2 = Path(raw_dir + '/' + fname + ".RAF")
+    returncode, stdout, stderr = -1,-1,-1
+    rawpath = None
+    # print("RAWFILE:" + str(rawfile))
+    if (rawfile1).is_file():
+        rawpath = os.path.abspath(rawfile1)
+    if (rawfile2).is_file():
+        rawpath = os.path.abspath(rawfile2)
+
+    if not (rawpath is None):
+        returncode, stdout, stderr = execCommand(command + [rawpath, tgt_dir])
+
+    return returncode, stdout, stderr
+
+def process(src_dir, tgt_dir, raw, command, process_jpeg, process_raw):
     photos = getPhotos()
     files = getFiles(src_dir)
+
+    if len(raw)>0 and process_jpeg.upper() == 'Y':
+        raw_dir = raw
+    else:
+        raw_dir = src_dir
+
     for f in files:
         fname, fextension = os.path.splitext(f)
-        if len(raw)>0:
-            raw_dir = raw
-        else:
-            raw_dir = src_dir
 
-        if fextension.upper() in ['.JPEG','.JPG','.PNG']:
-            if (fname+fextension.lower() in photos) or (fname+fextension.upper() in photos):
-                print(f)
-                returncode, stdout, stderr = execCommand(command + [src_dir+'/'+f, tgt_dir])
-                rawfile = Path(raw_dir + '/' + fname + ".RW2")
-                # print("RAWFILE:" + str(rawfile))
-                if (rawfile).is_file():
-                    # print("RAW: "+f)
-                    returncode, stdout, stderr = execCommand(command + [rawfile, tgt_dir])
+        if fextension.upper() in ['.JPEG','.JPG','.PNG'] and process_jpeg in ['y','Y']:
+            if ((fname+fextension.lower() in photos) or (fname+fextension.upper() in photos)):
+                src_path = os.path.abspath(src_dir)
+                returncode, stdout, stderr = execCommand(command + [src_path+'/'+f, tgt_dir])
+
+                if process_raw in ['y','Y']:
+                    returncode, stdout, stderr = processRaw(raw_dir, tgt_dir, fname, command)
+
+        if process_jpeg.upper() in ['N'] and process_raw.upper() in ['Y']:
+            if (((fname+'.jpeg') in photos) or ((fname+'JPEG') in photos) or ((fname+'.jpg') in photos) or ((fname+'.JPG') in photos)):
+                returncode, stdout, stderr = processRaw(raw_dir, tgt_dir, fname, command)
 
 @click.group()
 def imgorg():
@@ -90,15 +110,37 @@ def imgorg():
 @click.argument('src_dir', required=True)
 @click.argument('tgt_dir', required=True)
 @click.option('-r', '--raw', default='', help='Source folder of RAW files, if different from src_dir')
-def simlink(src_dir, tgt_dir, raw):
-    process(src_dir, tgt_dir, raw, ['ln', '-s'])
+@click.option('-t', '--type', default='', help='File type to process - JPEG, RAW, ALL')
+def simlink(src_dir, tgt_dir, raw, type):
+    process_jpeg = 'n'
+    process_raw = 'n'
+    if type is None or type.upper() in ['JPEG','ALL'] or type:
+        process_jpeg = 'y'
+    if type is None or type.upper() in ['RAW','ALL']:
+        process_raw = 'y'
+    process(src_dir, tgt_dir, raw, ['ln', '-s'], process_jpeg, process_raw)
+
+@imgorg.command()
+@click.argument('src_dir', required=True)
+@click.argument('tgt_dir', required=True)
+@click.option('-t', '--type', default='', help='File type to process - JPEG, RAW, ALL')
+def cp(src_dir, tgt_dir, type):
+    process_jpeg = 'n'
+    process_raw = 'n'
+    print('type: ' + type)
+    if type is None or type.upper() in ['JPEG','ALL']:
+        process_jpeg = 'y'
+    if type is None or type.upper() in ['RAW','ALL']:
+        process_raw = 'y'
+    print('jpeg: ' + process_jpeg + ', raw: ' + process_raw)
+    process(src_dir, tgt_dir, type, ['cp'], process_jpeg, process_raw)
 
 @imgorg.command()
 @click.argument('src_dir', required=True)
 @click.argument('tgt_dir', required=True)
 @click.option('-r', '--raw', default='', help='Source folder of RAW files, if different from src_dir')
 def mv(src_dir, tgt_dir, raw):
-    process(src_dir, tgt_dir, raw, ['mv'])
+    process(src_dir, tgt_dir, raw, ['mv'], 'y', 'y')
 
 @imgorg.command()
 @click.argument('src_dir', required=True)
@@ -116,7 +158,7 @@ def cmp(src_dir, tgt_dir):
 
     for f in srcFiles:
         if f in tgtFiles:
-            # print("!!! File exists in both folders: " + f)
+            #print("!!! File exists in both folders: " + f)
             pass
         else:
             pass
@@ -124,11 +166,11 @@ def cmp(src_dir, tgt_dir):
 
     for f in tgtFiles:
         if f in srcFiles:
-            # print("!!! File exists in both folders: " + f)
+            #print("!!! File exists in both folders: " + f)
             pass
         else:
             pass
-            print("!!! File found only in target : " + f)        
+            print("!!! File found only in target : " + f)
 
 @imgorg.command()
 @click.argument('src_dir', required=True)
