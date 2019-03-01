@@ -82,14 +82,24 @@ def process(src_dir, tgt_dir, raw, command, process_jpeg, process_raw):
     photos = getPhotos()
     files = getFiles(src_dir)
 
+    print("src dir: " + src_dir)
+    print("tgt dir: " + tgt_dir)
+    print("raw: " + raw)
+    # print("command: " + command)
+    print("process_jpeg: " + process_jpeg)
+    print("process_raw: " + process_raw)
+
+
     if len(raw)>0 and process_jpeg.upper() == 'Y':
         raw_dir = raw
     else:
         raw_dir = src_dir
 
+    print("raw dir: " + raw_dir)
+
     for f in files:
         fname, fextension = os.path.splitext(f)
-
+        print("fname: " + fname)
         if fextension.upper() in ['.JPEG','.JPG','.PNG'] and process_jpeg in ['y','Y']:
             if ((fname+fextension.lower() in photos) or (fname+fextension.upper() in photos)):
                 src_path = os.path.abspath(src_dir)
@@ -114,7 +124,7 @@ def imgorg():
 def simlink(src_dir, tgt_dir, raw, type):
     process_jpeg = 'n'
     process_raw = 'n'
-    if type is None or type.upper() in ['JPEG','ALL'] or type:
+    if type is None or type.upper() in ['JPEG','ALL']:
         process_jpeg = 'y'
     if type is None or type.upper() in ['RAW','ALL']:
         process_raw = 'y'
