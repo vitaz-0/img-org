@@ -201,7 +201,8 @@ def buildImgList(dirList, imgNames, refnames, refids):
                 existingNames.append(n)
                 print("FOUND IN REF ALBUM: " + n + " ID: " + refids[idx])
             except(Exception):
-                print("NAME " + n + " doesnt exist in ref album")
+                None
+                #print("NAME " + n + " doesnt exist in ref album")
 
         for dir in dirList:
             location = None
@@ -262,8 +263,8 @@ def add(album, dirs, check, batch, ref_album):
 
         pathList, idsToLink = buildImgList(dirList, photos, refphotos, refids)
 
-        #click.echo("paths:")
-        #click.echo(listToApplescript(pathList))
+        click.echo("paths:")
+        click.echo(listToApplescript(pathList))
 
         if check.upper() != 'Y':
             click.echo("DOING")

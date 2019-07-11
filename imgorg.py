@@ -102,7 +102,9 @@ def process(src_dir, tgt_dir, raw, command, process_jpeg, process_raw):
         print("fname: " + fname)
         if fextension.upper() in ['.JPEG','.JPG','.PNG'] and process_jpeg in ['y','Y']:
             if ((fname+fextension.lower() in photos) or (fname+fextension.upper() in photos)):
-                src_path = os.path.abspath(src_dir)
+                # src_path = os.path.abspath(src_dir)
+                # tgt_path = os.path.abspath(tgt_dir)
+                src_path = os.path.relpath(src_dir, tgt_dir)
                 returncode, stdout, stderr = execCommand(command + [src_path+'/'+f, tgt_dir])
 
                 if process_raw in ['y','Y']:
@@ -121,6 +123,7 @@ def imgorg():
 @click.argument('tgt_dir', required=True)
 @click.option('-r', '--raw', default='', help='Source folder of RAW files, if different from src_dir')
 @click.option('-t', '--type', default='', help='File type to process - JPEG, RAW, ALL')
+@click.option('-e', '--edited', default='', help='Folder containing edted JPEG exports')
 def simlink(src_dir, tgt_dir, raw, type):
     process_jpeg = 'n'
     process_raw = 'n'
@@ -191,7 +194,7 @@ def resize(src_dir, tgt_dir):
     for f in files:
         fname, fextension = os.path.splitext(f)
         if fextension.upper() in ['.JPEG','.JPG','.PNG']:
-            returncode, stdout, stderr = execCommand([command, src_dir+'/'+f, tgt_dir+'/small_'+f])
+            returncode, stdout, stderr = execCommand([command, src_dir+'/'+f, tgt_dir+'/s_'+f])
             print(f, returncode, stdout)
 if __name__ == '__main__':
     imgorg()
