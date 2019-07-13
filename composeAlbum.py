@@ -91,6 +91,8 @@ def getSelectedPhotos() -> list:
 
     p = Popen(['osascript', '-'] + args, stdin=PIPE, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     stdout, stderr = p.communicate(scpt)
+    #print(stdout)
+    #print(stderr)
     output = stdout.split(',')
 
     length = int(output[0])
@@ -107,8 +109,8 @@ def getSelectedPhotos() -> list:
     return names, ids
 
 def addImagesToGallery(album, photosList):
-    print("ALBUM: " + album)
-    print("PHOTOS: " + photosList)
+    print("Adding to ALBUM: " + album)
+    print("Adding photo: " + photosList)
     scpt = '''
         set photoList to %s
 
@@ -126,6 +128,33 @@ def addImagesToGallery(album, photosList):
         tell application "Photos"
             import imageList into container named "%s" with skip check duplicates
         end tell ''' % (photosList, album)
+
+    args = ['2', '2']
+
+    p = Popen(['osascript', '-'] + args, stdin=PIPE, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    stdout, stderr = p.communicate(scpt)
+    output = stdout.split(',')
+    trimedOutput = []
+    for a in output:
+        trimedOutput.append(a.strip())
+    return trimedOutput
+
+def linkImagesToGallery(albumName, photoId):
+    print("Linking to ALBUM: " + albumName)
+    print("Linking PHOTOS: " + photoId)
+    scpt = '''
+        tell application "Photos"
+
+            set myAlbums to (every album whose name is "%s")
+            log myAlbums
+            set the targetAlbum to item 1 of myAlbums
+
+            set albumId to id of targetAlbum
+            set photoList to every media item whose id is "%s"
+
+            add photoList to album id (albumId)
+
+        end tell ''' % (albumName, photoId)
 
     args = ['2', '2']
 
@@ -182,7 +211,7 @@ def buildImgList(dirList, imgNames, refnames, refids):
     imgNotFound=0
     for img in imgNames:
 
-        print("IMG TO FIND IN FOLDERS: " + img)
+        #print("IMG TO FIND IN FOLDERS: " + img)
         found = False
         name, ext = os.path.splitext(img)
         imgProcessed = imgProcessed + 1
@@ -199,7 +228,7 @@ def buildImgList(dirList, imgNames, refnames, refids):
                 idx = refnames.index(n)
                 existingIds.append(refids[idx])
                 existingNames.append(n)
-                print("FOUND IN REF ALBUM: " + n + " ID: " + refids[idx])
+                #print("FOUND IN REF ALBUM: " + n + " ID: " + refids[idx])
             except(Exception):
                 None
                 #print("NAME " + n + " doesnt exist in ref album")
@@ -223,14 +252,14 @@ def buildImgList(dirList, imgNames, refnames, refids):
                     location = str(f)
                     break
             if found:
-                print("FOUND: " + location)
+                #print("FOUND: " + location)
                 break
 
         if not found:
-            print("NOT FOUND: " + str(img) + "\n")
+            #print("NOT FOUND: " + str(img) + "\n")
             imgNotFound = imgNotFound + 1
 
-    print("TOTAL PROCESSED: %s, FOUND: %s, NOT FOUND: %s \n"%(str(imgProcessed), str(imgFound), str(imgNotFound)))
+    print("TOTAL IMAGES IN LIST: %s, FOUND: %s, NOT FOUND: %s "%(str(imgProcessed), str(imgFound), str(imgNotFound)))
     return existingIds, pathList
 
 def listToApplescript(srcList) -> str:
@@ -249,6 +278,10 @@ def listToApplescript(srcList) -> str:
 @click.option('-b', '--batch', default='y', help='Add all in on batch.')
 @click.option('-a', '--ref_album', default='', help='Reference album to check if photo exists.')
 def add(album, dirs, check, batch, ref_album):
+    click.echo("ALBUM: " + album)
+    click.echo("CHECK: " + check)
+    click.echo("BATCH: " + batch)
+    click.echo("REF_ALBUM: " + ref_album)
     dirList = list()
     #batch = 'N'
     #check = 'Y'
@@ -256,8 +289,16 @@ def add(album, dirs, check, batch, ref_album):
         #click.echo('Folder: %s' % (folder))
         dirList.append(folder)
 
+    click.echo("DIRS: ")
+    click.echo(dirList)
+
     photos, ids = getSelectedPhotos()
-    refphotos, refids = getAlbumPhotos(ref_album)
+
+    if ref_album is not None and ref_album != "":
+        refphotos, refids = getAlbumPhotos(ref_album)
+    else:
+        refphotos = list()
+        refids = list()
 
     if batch.upper() == 'Y':
 
@@ -274,14 +315,29 @@ def add(album, dirs, check, batch, ref_album):
     if batch.upper() == 'N':
 
         for p in photos:
+            idsToLink = list()
+            pathList = list()
             photoList = list()
-            photoList.append(p)
-            pathList, idsToLink = buildImgList(dirList, photoList, refphotos, refids)
-
+            photoList = [p]
+            #print("PHOTO")
+            #print(p)
+            #print(refphotos)
+            #print(refids)
+            idsToLink, pathList = buildImgList(dirList, photoList, refphotos, refids)
+            #print("ids:")
+            #print(idsToLink)
+            #print("paths:")
+            #print(pathList)
             if check.upper() != 'Y':
-                #click.echo("DOING")
-                x = addImagesToGallery(album, listToApplescript(pathList))
-                click.echo(x)
+                if len(pathList) > 0:
+                    #click.echo("DOING")
+                    x = addImagesToGallery(album, listToApplescript(pathList))
+                    click.echo(x)
+                if len(idsToLink) > 0:
+                    x = linkImagesToGallery(album, idsToLink[0])
+                    click.echo(x)
+            print("********************")
+
 
 if __name__ == '__main__':
     add()
