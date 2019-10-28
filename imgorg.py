@@ -78,7 +78,7 @@ def processRaw(raw_dir, tgt_dir, fname, command):
 
     return returncode, stdout, stderr
 
-def process(src_dir, tgt_dir, edited_dir, raw, command, process_jpeg, process_raw):
+def process(src_dir, tgt_dir, edited_dir, raw, command, process_jpeg, process_raw, relative):
     photos = getPhotos()
     files = getFiles(src_dir)
 
@@ -93,6 +93,7 @@ def process(src_dir, tgt_dir, edited_dir, raw, command, process_jpeg, process_ra
     # print("command: " + command)
     print("process_jpeg: " + process_jpeg)
     print("process_raw: " + process_raw)
+    print("relative: " + str(relative))
 
 
     if len(raw)>0 and process_jpeg.upper() == 'Y':
@@ -123,12 +124,21 @@ def process(src_dir, tgt_dir, edited_dir, raw, command, process_jpeg, process_ra
 
                 editFileNames = [value for value in editNames if value in editedFiles]
 
-                if edited_dir is not None and len(editFileNames)>0:
-                    src_path = os.path.relpath(edited_dir, tgt_dir)
-                    returncode, stdout, stderr = execCommand(command + [src_path+'/'+editFileNames[0], tgt_dir])
+                if relative is True:
+                    if edited_dir is not None and edited_dir !="" and len(editFileNames)>0:
+                        src_path = os.path.relpath(edited_dir, tgt_dir)
+                        returncode, stdout, stderr = execCommand(command + [src_path+'/'+editFileNames[0], tgt_dir])
+                    else:
+                        src_path = os.path.relpath(src_dir, tgt_dir)
+                        returncode, stdout, stderr = execCommand(command + [src_path+'/'+f, tgt_dir])
                 else:
-                    src_path = os.path.relpath(src_dir, tgt_dir)
-                    returncode, stdout, stderr = execCommand(command + [src_path+'/'+f, tgt_dir])
+                    if edited_dir is not None and edited_dir !="" and len(editFileNames)>0:
+                        src_path = os.path.abspath(src_dir)
+                        returncode, stdout, stderr = execCommand(command + [src_path+'/'+editFileNames[0], tgt_dir])
+                    else:
+                        src_path = os.path.abspath(src_dir)
+                        returncode, stdout, stderr = execCommand(command + [src_path+'/'+f, tgt_dir])
+
 
                 if process_raw in ['y','Y']:
                     returncode, stdout, stderr = processRaw(raw_dir, tgt_dir, fname, command)
@@ -155,29 +165,36 @@ def simlink(src_dir, tgt_dir, raw, type, edited):
     if type is None or type.upper() in ['RAW','ALL']:
         process_raw = 'y'
     edited_dir = edited
-    process(src_dir, tgt_dir, edited_dir, raw, ['ln', '-s'], process_jpeg, process_raw)
+    process(src_dir, tgt_dir, edited_dir, raw, ['ln', '-s'], process_jpeg, process_raw, True)
 
 @imgorg.command()
 @click.argument('src_dir', required=True)
 @click.argument('tgt_dir', required=True)
 @click.option('-t', '--type', default='', help='File type to process - JPEG, RAW, ALL')
-def cp(src_dir, tgt_dir, type):
+@click.option('-r', '--raw', default='', help='Source folder of RAW files, if different from src_dir')
+def cp(src_dir, tgt_dir, type, raw):
     process_jpeg = 'n'
     process_raw = 'n'
+
+    if raw is not None and raw != "":
+        raw_dir = raw
+    else:
+        raw_dir = None
+
     print('type: ' + type)
     if type is None or type.upper() in ['JPEG','ALL']:
         process_jpeg = 'y'
     if type is None or type.upper() in ['RAW','ALL']:
         process_raw = 'y'
     print('jpeg: ' + process_jpeg + ', raw: ' + process_raw)
-    process(src_dir, tgt_dir, None, type, ['cp'], process_jpeg, process_raw)
+    process(src_dir, tgt_dir, None, raw_dir, ['cp'], process_jpeg, process_raw, False)
 
 @imgorg.command()
 @click.argument('src_dir', required=True)
 @click.argument('tgt_dir', required=True)
 @click.option('-r', '--raw', default='', help='Source folder of RAW files, if different from src_dir')
 def mv(src_dir, tgt_dir, raw):
-    process(src_dir, tgt_dir, None, raw, ['mv'], 'y', 'y')
+    process(src_dir, tgt_dir, None, raw, ['mv'], 'y', 'y', False)
 
 @imgorg.command()
 @click.argument('src_dir', required=True)
