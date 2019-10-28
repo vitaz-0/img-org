@@ -237,5 +237,13 @@ def resize(src_dir, tgt_dir):
         if fextension.upper() in ['.JPEG','.JPG','.PNG']:
             returncode, stdout, stderr = execCommand([command, src_dir+'/'+f, tgt_dir+'/s_'+f])
             print(f, returncode, stdout)
+
+@imgorg.command()
+def list():
+    photos = listPhotos()
+
+    for p in photos:
+        print(p)
+
 if __name__ == '__main__':
     imgorg()
