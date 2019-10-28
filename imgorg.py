@@ -239,11 +239,26 @@ def resize(src_dir, tgt_dir):
             print(f, returncode, stdout)
 
 @imgorg.command()
-def list():
-    photos = listPhotos()
+@click.argument('tgt_file', required=False)
+def list(tgt_file):
 
-    for p in photos:
-        print(p)
+    photos = listPhotos()
+    if tgt_file:
+        directory = os.path.dirname(tgt_file)
+        filename = os.path.basename(tgt_file)
+        print("DIRECTORY")
+        print(directory)
+
+        os.makedirs(directory, exist_ok=True)
+        file = open(tgt_file, "w")
+        for p in photos:
+            file.write(p)
+            file.write("\r\n")
+        file.close()
+
+    else:
+        for p in photos:
+            print(p)
 
 if __name__ == '__main__':
     imgorg()
