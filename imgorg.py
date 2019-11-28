@@ -89,14 +89,14 @@ def process(src_dir, tgt_dir, edited_dir, raw, command, process_jpeg, process_ra
     print("src dir: " + src_dir)
     print("tgt dir: " + tgt_dir)
     #print("edited dir: " + edited_dir)
-    print("raw: " + raw)
+    print("raw: " + str(raw))
     # print("command: " + command)
     print("process_jpeg: " + process_jpeg)
     print("process_raw: " + process_raw)
     print("relative: " + str(relative))
 
 
-    if len(raw)>0 and process_jpeg.upper() == 'Y':
+    if process_raw.upper() == 'Y' and process_jpeg.upper() == 'Y' and len(raw)>0 :
         raw_dir = raw
     else:
         raw_dir = src_dir
@@ -119,8 +119,9 @@ def process(src_dir, tgt_dir, edited_dir, raw, command, process_jpeg, process_ra
         editNames.append("%se_80_raw.jpeg"%(fname))
 
         if fextension.upper() in ['.JPEG','.JPG','.PNG'] and process_jpeg in ['y','Y']:
-            print(fname+fextension.lower())
-            if ((fname+fextension.lower() in photos) or (fname+fextension.upper() in photos) or (fname[2:]+fextension.upper() in photos) or (fname[6:]+fextension.upper() in photos)):
+            print('dsfdfddsfdsf')
+            print((fname+fextension).lower())
+            if (((fname+fextension).lower() in photos) or ((fname+fextension).upper() in photos) or ((fname[2:]+fextension).upper() in photos) or ((fname[6:]+fextension).upper() in photos)):
 
                 editFileNames = [value for value in editNames if value in editedFiles]
 
@@ -175,12 +176,10 @@ def simlink(src_dir, tgt_dir, raw, type, edited):
 def cp(src_dir, tgt_dir, type, raw):
     process_jpeg = 'n'
     process_raw = 'n'
-
     if raw is not None and raw != "":
         raw_dir = raw
     else:
         raw_dir = None
-
     print('type: ' + type)
     if type is None or type.upper() in ['JPEG','ALL']:
         process_jpeg = 'y'
@@ -204,12 +203,10 @@ def cmp(src_dir, tgt_dir):
         srcFiles = getPhotos()
     else:
         srcFiles = getFiles(src_dir)
-
     if tgt_dir == 'PHOTOS':
         tgtFiles = getPhotos()
     else:
         tgtFiles = getFiles(tgt_dir)
-
     for f in srcFiles:
         if f in tgtFiles:
             #print("!!! File exists in both folders: " + f)
@@ -217,7 +214,6 @@ def cmp(src_dir, tgt_dir):
         else:
             pass
             print("!!! File found only in source : " + f)
-
     for f in tgtFiles:
         if f in srcFiles:
             #print("!!! File exists in both folders: " + f)
@@ -238,27 +234,24 @@ def resize(src_dir, tgt_dir):
             returncode, stdout, stderr = execCommand([command, src_dir+'/'+f, tgt_dir+'/s_'+f])
             print(f, returncode, stdout)
 
-@imgorg.command()
-@click.argument('tgt_file', required=False)
-def list(tgt_file):
-
-    photos = listPhotos()
-    if tgt_file:
-        directory = os.path.dirname(tgt_file)
-        filename = os.path.basename(tgt_file)
-        print("DIRECTORY")
-        print(directory)
-
-        os.makedirs(directory, exist_ok=True)
-        file = open(tgt_file, "w")
-        for p in photos:
-            file.write(p)
-            file.write("\r\n")
-        file.close()
-
-    else:
-        for p in photos:
-            print(p)
+# @imgorg.command()
+# @click.argument('tgt_file', required=False)
+# def list(tgt_file):
+#     photos = listPhotos()
+#     if tgt_file:
+#         directory = os.path.dirname(tgt_file)
+#         filename = os.path.basename(tgt_file)
+#         print("DIRECTORY")
+#         print(directory)
+#         os.makedirs(directory, exist_ok=True)
+#         file = open(tgt_file, "w")
+#         for p in photos:
+#             file.write(p)
+#             file.write("\r\n")
+#         file.close()
+#     else:
+#         for p in photos:
+#             print(p)
 
 if __name__ == '__main__':
     imgorg()
