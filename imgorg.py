@@ -78,6 +78,35 @@ def processRaw(raw_dir, tgt_dir, fname, command):
 
     return returncode, stdout, stderr
 
+def filePresentInPhotos(photos, fname, fextension):
+
+    found = False
+
+    editNames = list()
+
+    editNames.append("%s.RAF"%(fname))
+    editNames.append("%s.jpg"%(fname))
+    editNames.append("%se.jpg"%(fname))
+    editNames.append("%se.jpeg"%(fname))
+    editNames.append("%se_80.jpg"%(fname))
+    editNames.append("%se_80.jpeg"%(fname))
+    editNames.append("%se_raw.jpg"%(fname))
+    editNames.append("%se_raw.jpeg"%(fname))
+    editNames.append("%se_80_raw.jpg"%(fname))
+    editNames.append("%se_80_raw.jpeg"%(fname))
+
+    for img in photos:
+        imgname, imgextension = os.path.splitext(img)
+        if imgname.lower() == fname.lower() and fextension.lower() == imgextension.lower():
+            found = True
+            break
+
+    if found == False:
+        if(((fname+".RAF").upper() in photos) or ((fname[2:]+fextension).upper() in photos) or ((fname[6:]+fextension).upper() in photos)):
+            found = True
+
+    return found, editNames
+
 def process(src_dir, tgt_dir, edited_dir, raw, command, process_jpeg, process_raw, relative):
     photos = getPhotos()
     files = getFiles(src_dir)
@@ -106,23 +135,11 @@ def process(src_dir, tgt_dir, edited_dir, raw, command, process_jpeg, process_ra
     for f in files:
         fname, fextension = os.path.splitext(f)
         print("fname: " + fname)
-
-        editNames = list()
-
-        editNames.append("%se.jpg"%(fname))
-        editNames.append("%se.jpeg"%(fname))
-        editNames.append("%se_80.jpg"%(fname))
-        editNames.append("%se_80.jpeg"%(fname))
-        editNames.append("%se_raw.jpg"%(fname))
-        editNames.append("%se_raw.jpeg"%(fname))
-        editNames.append("%se_80_raw.jpg"%(fname))
-        editNames.append("%se_80_raw.jpeg"%(fname))
-
         if fextension.upper() in ['.JPEG','.JPG','.PNG'] and process_jpeg in ['y','Y']:
-            print('dsfdfddsfdsf')
-            print((fname+fextension).lower())
-            if (((fname+fextension).lower() in photos) or ((fname+fextension).upper() in photos) or ((fname[2:]+fextension).upper() in photos) or ((fname[6:]+fextension).upper() in photos)):
 
+            found, editNames = filePresentInPhotos(photos, fname, fextension)
+
+            if found:
                 editFileNames = [value for value in editNames if value in editedFiles]
 
                 if relative is True:
