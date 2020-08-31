@@ -188,7 +188,7 @@ def buildFileNames(name):
     if name.upper().endswith('E'):
         name = name[:-1]
 
-    #print("NAME COMPOSED: " + name)
+    # print("NAME COMPOSED: " + name)
 
     names = list()
     names.append('s_%se.jpg'%(name))
@@ -201,6 +201,11 @@ def buildFileNames(name):
     names.append('s_%s.jpeg'%(name))
     names.append('small_%s.jpeg'%(name))
     names.append('%s.jpeg'%(name))
+    names.append('%s.JPEG'%(name))
+    names.append('%s.JPG'%(name))
+    names.append('%s.jpg'%(name))
+    names.append('%s.PNG'%(name))
+    names.append('%s.MOV'%(name))
 
     return names
 
@@ -228,7 +233,7 @@ def buildImgList(dirList, imgNames, refnames, refids):
                 idx = refnames.index(n)
                 existingIds.append(refids[idx])
                 existingNames.append(n)
-                #print("FOUND IN REF ALBUM: " + n + " ID: " + refids[idx])
+                # print("FOUND IN REF ALBUM: " + n + " ID: " + refids[idx])
             except(Exception):
                 None
                 #print("NAME " + n + " doesnt exist in ref album")
@@ -256,7 +261,7 @@ def buildImgList(dirList, imgNames, refnames, refids):
                 break
 
         if not found:
-            #print("NOT FOUND: " + str(img) + "\n")
+            print("NOT FOUND: " + str(img) + "\n")
             imgNotFound = imgNotFound + 1
 
     print("TOTAL IMAGES IN LIST: %s, FOUND: %s, NOT FOUND: %s "%(str(imgProcessed), str(imgFound), str(imgNotFound)))
@@ -319,8 +324,8 @@ def add(album, dirs, check, batch, ref_album):
             pathList = list()
             photoList = list()
             photoList = [p]
-            #print("PHOTO")
-            #print(p)
+            print("PHOTO")
+            print(p)
             #print(refphotos)
             #print(refids)
             idsToLink, pathList = buildImgList(dirList, photoList, refphotos, refids)
